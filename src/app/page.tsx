@@ -423,27 +423,27 @@ export default function Home() {
   const carImageMap: Record<string, Record<string, string>> = {
     m2: {
       blue: "/uploads/models/m2.png",
-      white: "/cars/bmw_m2.png",
+      white: "/uploads/models/m2_white.png",
       black: "/uploads/models/m2_black.png",
       green: "/uploads/models/m2_green.png",
     },
     m4: {
       blue: "/uploads/models/m4.png",
-      white: "/uploads/models/m4_csl.png",
-      black: "/cars/bmw_m4.png",
+      white: "/uploads/models/m4_white.png",
+      black: "/uploads/models/m4_black.png",
       green: "/uploads/models/m4_green.png",
     },
     m5: {
-      blue: "/cars/bmw_m5.png",
-      white: "/uploads/gallery/g01.png",
-      black: "/uploads/models/m5.png",
+      blue: "/uploads/models/m5_blue.png",
+      white: "/uploads/models/m5_white.png",
+      black: "/uploads/models/m5_black.png",
       green: "/uploads/models/m5_green.png",
     },
     xm: {
       blue: "/uploads/models/xm_blue.png",
       white: "/uploads/models/xm_white.png",
-      black: "/cars/bmw_xm.png",
-      green: "/uploads/models/xm.png",
+      black: "/uploads/models/xm.png",
+      green: "/uploads/models/xm_blue.png",
     },
   };
 
@@ -1240,6 +1240,11 @@ export default function Home() {
                       src={carImageMap[car.id][mColors[car.id]]}
                       alt={car.name}
                       className="m-card-img"
+                      style={{
+                        filter: car.id === "xm" && mColors.xm === "green"
+                          ? "hue-rotate(270deg) saturate(1.25) brightness(0.85)"
+                          : "none"
+                      }}
                     />
                   </div>
 
