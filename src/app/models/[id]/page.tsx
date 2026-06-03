@@ -394,7 +394,7 @@ function InteractiveChassisLab({
           osc2Ref.current?.stop();
           audioCtxRef.current.close();
         }
-      } catch (e) {}
+      } catch (e) { }
     };
   }, []);
 
@@ -418,12 +418,12 @@ function InteractiveChassisLab({
 
       const osc1 = ctx.createOscillator();
       osc1.type = "sawtooth";
-      osc1.frequency.setValueAtTime(45, ctx.currentTime); 
+      osc1.frequency.setValueAtTime(45, ctx.currentTime);
       osc1Ref.current = osc1;
 
       const osc2 = ctx.createOscillator();
       osc2.type = "triangle";
-      osc2.frequency.setValueAtTime(90, ctx.currentTime); 
+      osc2.frequency.setValueAtTime(90, ctx.currentTime);
       osc2Ref.current = osc2;
 
       osc1.connect(filter);
@@ -458,7 +458,7 @@ function InteractiveChassisLab({
             osc1Ref.current?.stop();
             osc2Ref.current?.stop();
             ctx.close();
-          } catch (err) {}
+          } catch (err) { }
           audioCtxRef.current = null;
           osc1Ref.current = null;
           osc2Ref.current = null;
@@ -483,7 +483,7 @@ function InteractiveChassisLab({
     if (ctx && engineStarted) {
       const baseFreq1 = 30 + (newRpm / 8000) * 90;
       const baseFreq2 = 60 + (newRpm / 8000) * 180;
-      
+
       osc1?.frequency.setValueAtTime(baseFreq1, ctx.currentTime);
       osc2?.frequency.setValueAtTime(baseFreq2, ctx.currentTime);
 
@@ -498,11 +498,11 @@ function InteractiveChassisLab({
   const calculateSimulatedRange = () => {
     const baseRange = id.toLowerCase() === "i7" || id.toLowerCase() === "i7-m70" ? 580 : 490;
     const speedFactor = 1 - (evSpeed - 90) * 0.0065;
-    const tempFactor = evTemp < 10 
-      ? 1 - (10 - evTemp) * 0.0085 
-      : evTemp > 30 
-      ? 1 - (evTemp - 30) * 0.0045 
-      : 1;
+    const tempFactor = evTemp < 10
+      ? 1 - (10 - evTemp) * 0.0085
+      : evTemp > 30
+        ? 1 - (evTemp - 30) * 0.0045
+        : 1;
     return Math.round(baseRange * speedFactor * tempFactor);
   };
 
@@ -552,6 +552,7 @@ function InteractiveChassisLab({
   useEffect(() => {
     let animationFrameId: number;
     let autoAngle = 0;
+    let gridOffsetVal = 0;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -659,8 +660,26 @@ function InteractiveChassisLab({
       const cx = w / 2;
       const cy = h / 2;
 
+      let speedFactor = 0.02;
+      if (isElectric) {
+        speedFactor = (evSpeed / 100) * 0.05;
+      } else if (isMPower) {
+        speedFactor = engineStarted ? (mRpm / 1000) * 0.025 : 0;
+      } else {
+        const spinSpeedMap = { comfort: 0.025, sport: 0.045, sportPlus: 0.075 };
+        speedFactor = spinSpeedMap[driveMode];
+      }
+
+      const isMoving = speedFactor > 0;
+
       if (!isDragging.current) {
-        autoAngleRef.current += 0.005;
+        if (isMoving) {
+          // Gently align facing forward/side perspective and sway slightly to look dynamic
+          autoAngleRef.current = autoAngleRef.current * 0.95 + (Math.sin(time * 0.0015) * 0.04) * 0.05;
+        } else {
+          // Static turntable rotation in showroom
+          autoAngleRef.current += 0.005;
+        }
       }
 
       const angleY = rotation.y + autoAngleRef.current;
@@ -681,9 +700,14 @@ function InteractiveChassisLab({
         };
       }
 
+      // Suspension bobbing and micro road vibrations when moving
+      const bobbing = isMoving ? Math.sin(time * 0.012) * 0.008 * (speedFactor / 0.05) : 0;
+      const roadVibration = isMoving ? (Math.random() - 0.5) * 0.003 * (speedFactor / 0.05) : 0;
+      const totalYOffset = bobbing + roadVibration;
+
       const project = (p: Point3D) => {
         const px = p.x + vibrateOffset.x;
-        const py = p.y + vibrateOffset.y;
+        const py = p.y + vibrateOffset.y + totalYOffset;
         const pz = p.z + vibrateOffset.z;
 
         const y1 = py * cosX - pz * sinX;
@@ -694,7 +718,7 @@ function InteractiveChassisLab({
         const fov = 350;
         const scale = fov / (fov + z2);
         const zoom = 90;
-        
+
         return {
           x: cx + x2 * scale * zoom,
           y: cy - y1 * scale * zoom,
@@ -702,34 +726,30 @@ function InteractiveChassisLab({
         };
       };
 
+      // Infinite scrolling floor grid matching vehicle speed
+      gridOffsetVal = (gridOffsetVal + speedFactor * 0.6) % 0.6; // 0.6 is gridSpacing
+
       ctx.strokeStyle = theme.grid;
       ctx.lineWidth = 1;
       const gridCount = 6;
       const gridSpacing = 0.6;
-      for (let i = -gridCount; i <= gridCount; i++) {
-        let p1 = project({ x: i * gridSpacing, y: -0.3, z: -gridCount * gridSpacing });
-        let p2 = project({ x: i * gridSpacing, y: -0.3, z: gridCount * gridSpacing });
+      for (let i = -gridCount - 1; i <= gridCount; i++) {
+        if (i >= -gridCount) {
+          let p1 = project({ x: i * gridSpacing, y: -0.3, z: -gridCount * gridSpacing });
+          let p2 = project({ x: i * gridSpacing, y: -0.3, z: gridCount * gridSpacing });
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+
+        let zPos = i * gridSpacing + gridOffsetVal;
+        let p1 = project({ x: -gridCount * gridSpacing, y: -0.3, z: zPos });
+        let p2 = project({ x: gridCount * gridSpacing, y: -0.3, z: zPos });
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
         ctx.stroke();
-
-        p1 = project({ x: -gridCount * gridSpacing, y: -0.3, z: i * gridSpacing });
-        p2 = project({ x: gridCount * gridSpacing, y: -0.3, z: i * gridSpacing });
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-      }
-
-      let speedFactor = 0.02; 
-      if (isElectric) {
-        speedFactor = (evSpeed / 100) * 0.05;
-      } else if (isMPower) {
-        speedFactor = engineStarted ? (mRpm / 1000) * 0.025 : 0;
-      } else {
-        const spinSpeedMap = { comfort: 0.025, sport: 0.045, sportPlus: 0.075 };
-        speedFactor = spinSpeedMap[driveMode];
       }
 
       ctx.strokeStyle = theme.secondary;
@@ -754,9 +774,9 @@ function InteractiveChassisLab({
       if (id === "1916") {
         engineAngleRef.current += 0.05;
         const theta = engineAngleRef.current;
-        const r = 0.2; 
-        const L = 0.6; 
-        
+        const r = 0.2;
+        const L = 0.6;
+
         const zStations = [-0.9, -0.54, -0.18, 0.18, 0.54, 0.9];
         const phases = [
           0,
@@ -802,8 +822,8 @@ function InteractiveChassisLab({
           ctx.lineTo(ptPistonPin.x, ptPistonPin.y);
           ctx.stroke();
 
-          const pw = 0.16; 
-          const ph = 0.08; 
+          const pw = 0.16;
+          const ph = 0.08;
           const ptP1 = project({ x: -pw, y: pistonY, z: cz });
           const ptP2 = project({ x: pw, y: pistonY, z: cz });
           const ptP3 = project({ x: pw, y: pistonY + ph, z: cz });
@@ -848,9 +868,9 @@ function InteractiveChassisLab({
         ];
         const projCorners = corners.map(project);
         const boxEdges = [
-          [0, 1], [1, 2], [2, 3], [3, 0], 
-          [4, 5], [5, 6], [6, 7], [7, 4], 
-          [0, 4], [1, 5], [2, 6], [3, 7], 
+          [0, 1], [1, 2], [2, 3], [3, 0],
+          [4, 5], [5, 6], [6, 7], [7, 4],
+          [0, 4], [1, 5], [2, 6], [3, 7],
         ];
         boxEdges.forEach(([u, v]) => {
           ctx.beginPath();
@@ -966,7 +986,7 @@ function InteractiveChassisLab({
       const cx = w / 2;
       const cy = h / 2;
 
-      const angleY = rotation.y; 
+      const angleY = rotation.y;
       const angleX = rotation.x;
       const cosX = Math.cos(angleX);
       const sinX = Math.sin(angleX);
@@ -1068,11 +1088,11 @@ function InteractiveChassisLab({
   return (
     <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
       <span style={{ fontFamily: "var(--font-sans)", fontSize: "10px", fontWeight: 700, color: theme.primary, letterSpacing: "0.15em", textTransform: "uppercase", display: "block", marginBottom: "12px" }}>
-        {isHeritage ? "HERITAGE LABORATORY & VINTAGE BLUEPRINTS" : 
-         isElectric ? "eDRIVE TELEMETRY & RANGE SIMULATION" :
-         isMPower ? "M POWER DYNO & ENGINE SYNTHESIZER" :
-         isNeueKlasse ? "NEUE KLASSE PANORAMIC HUD PROJECTION" :
-         "CHASSIS VECTOR VISUALIZER & DYNAMIC TUNING"}
+        {isHeritage ? "HERITAGE LABORATORY & VINTAGE BLUEPRINTS" :
+          isElectric ? "eDRIVE TELEMETRY & RANGE SIMULATION" :
+            isMPower ? "M POWER DYNO & ENGINE SYNTHESIZER" :
+              isNeueKlasse ? "NEUE KLASSE PANORAMIC HUD PROJECTION" :
+                "CHASSIS VECTOR VISUALIZER & DYNAMIC TUNING"}
       </span>
 
       <div style={{ position: "relative", width: "100%", height: "240px", backgroundColor: theme.bg, border: `1px solid ${theme.secondary}`, overflow: "hidden", marginBottom: "16px" }}>
@@ -1497,10 +1517,10 @@ export default function CarDetailPage() {
       setFromCategory(searchParams.get("fromCategory"));
     }
   }, []);
-  
+
   // Tabs config
   const [activeTab, setActiveTab] = useState<"overview" | "specs" | "lab">("overview");
-  
+
   // Safeguard ID parsing
   const rawId = params?.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId || "";
@@ -1508,7 +1528,7 @@ export default function CarDetailPage() {
 
   // Dynamic lookup in primary catalog if not hardcoded in CAR_DATABASE
   let bmwModel = BMW_MODELS.find((m) => m.id.toLowerCase() === id.toLowerCase());
-  
+
   if (!car && bmwModel) {
     car = {
       title: bmwModel.name,
@@ -1725,7 +1745,7 @@ export default function CarDetailPage() {
             }}
           >
             <AnimatePresence mode="wait">
-              
+
               {/* TAB 1: OVERVIEW */}
               {activeTab === "overview" && (
                 <motion.div
