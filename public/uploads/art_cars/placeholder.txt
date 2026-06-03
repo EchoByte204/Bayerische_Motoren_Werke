@@ -1,0 +1,7 @@
+Place the 6 generated Art Car images in this folder with the following filenames:
+1. calder_1975.png
+2. lichtenstein_1977.png
+3. warhol_1979.png
+4. done_1990.png
+5. koons_2010.png
+6. fei_2017.png

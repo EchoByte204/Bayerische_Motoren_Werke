@@ -1,0 +1,7 @@
+Place your Munich tab destinations images here:
+
+1. bmw_welt.png (Futuristic BMW Welt architecture)
+2. bmw_museum.png (Iconic circular BMW Museum bowl)
+3. bmw_classic.png (BMW Group Classic historical facility hangar)
+
+Once you place these files in this folder, the website will automatically load them on the world page.

@@ -1,26 +1,767 @@
-@import "tailwindcss";
+/* Fonts are loaded via next/font in layout.tsx — no @import needed here */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary-blue: #1C69D4;
+  --bg-white: #FFFFFF;
+  --bg-light: #F5F5F7;
+  --bg-dark: #0C0D12;
+  
+  --text-dark: #0C0D12;
+  --text-muted: #6B7280;
+  --text-dim: #9CA3AF;
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+
+  /* Responsive section horizontal padding — fluid from 20px → 72px */
+  --section-px: clamp(20px, 5vw, 72px);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Base resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-white);
+  color: var(--text-dark);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent images from overflowing on mobile */
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Custom Scrollbar (Ice cold minimal) */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-white);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-dark);
+}
+
+/* Typography styles */
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Layout Containers */
+.container-full {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 72px;
+}
+
+/* ================= NAVIGATION ================= */
+.nav-link {
+  position: relative;
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  text-decoration: none;
+}
+
+/* BMW Blue underline slide-in on hover */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary-blue);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link:hover {
+  color: var(--primary-blue);
+}
+
+/* ================= EDITORIAL BUTTONS ================= */
+.btn-editorial-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 260px;
+  height: 48px;
+  background-color: var(--bg-white);
+  color: var(--bg-dark);
+  border: none;
+  border-radius: 0px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-editorial-primary:hover {
+  background-color: #ECECEF;
+}
+
+.btn-editorial-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 260px;
+  height: 48px;
+  background-color: transparent;
+  color: var(--bg-white);
+  border: 1px solid var(--bg-white);
+  border-radius: 0px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-editorial-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ================= ANIMATED SCROLL INDICATOR ================= */
+.scroll-indicator-bar {
+  position: relative;
+  width: 1px;
+  height: 60px;
+  background-color: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.scroll-indicator-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background-color: var(--bg-white);
+  animation: pulse-down 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@keyframes pulse-down {
+  0% {
+    transform: translateY(-100%);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(200%);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Snap Scroll for timeline */
+.timeline-snap-container {
+  display: flex;
+  gap: 32px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 24px;
+}
+
+.timeline-snap-container::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-card {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  width: 360px;
+  height: 500px;
+  background: var(--bg-white);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-card:hover .timeline-card-line {
+  width: 40px !important;
+}
+
+/* ================= M CARD STYLES ================= */
+.m-card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.m-card-img-container {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.m-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.m-card:hover .m-card-img {
+  transform: scale(1.04);
+}
+
+.m-card-cta {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary-blue);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 20px;
+  transition: color 0.3s ease;
+}
+
+.m-card:hover .m-card-cta {
+  color: #FFFFFF !important;
+}
+
+/* ================= FOOTER STYLES ================= */
+.footer-link {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: #9CA3AF;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  cursor: pointer;
+  line-height: 2.2;
+}
+
+.footer-link:hover {
+  color: #FFFFFF;
+}
+
+/* ================= GALLERY MASONRY ================= */
+.gallery-masonry {
+  column-count: 3;
+  column-gap: 24px;
+}
+
+.gallery-masonry-item {
+  break-inside: avoid;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.gallery-masonry-item img {
+  width: 100%;
+  display: block;
+  object-fit: cover; /* Prevents image squishing or distortion */
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.gallery-masonry-item:hover img {
+  transform: scale(1.03);
+}
+
+.gallery-masonry-item .gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(12, 13, 18, 0.7) 0%, rgba(12, 13, 18, 0) 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: flex-end;
+  padding: 24px;
+}
+
+.gallery-masonry-item:hover .gallery-overlay {
+  opacity: 1;
+}
+
+/* Gallery lightbox */
+.lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(12, 13, 18, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  transition: all 0.3s ease;
+}
+
+.lightbox-nav-btn:hover {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+/* ================= FILTER BAR ================= */
+.filter-btn {
+  background: transparent;
+  border: 1px solid #E5E7EB;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+.filter-btn.active {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: #FFFFFF;
+}
+
+/* ================= FACTORY TOUR STEP ================= */
+.factory-step {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.factory-step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 48px;
+}
+
+.factory-step-number {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #E5E7EB;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-dark);
+  transition: all 0.4s ease;
+}
+
+.factory-step.active .factory-step-number {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  background-color: rgba(28, 105, 212, 0.06);
+}
+
+.factory-step-line {
+  width: 2px;
+  flex: 1;
+  min-height: 40px;
+  background-color: #E5E7EB;
+  transition: background-color 0.4s ease;
+}
+
+.factory-step.active .factory-step-line {
+  background-color: var(--primary-blue);
+}
+
+/* ================= CONFIGURATOR ================= */
+.config-swatch {
+  width: 36px;
+  height: 36px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.config-swatch:hover {
+  border-color: var(--primary-blue);
+}
+
+.config-swatch.active {
+  border-color: var(--primary-blue);
+}
+
+.config-swatch.active::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.config-option {
+  padding: 16px 20px;
+  border: 1px solid #E5E7EB;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.config-option:hover {
+  border-color: var(--primary-blue);
+}
+
+.config-option.active {
+  border-color: var(--primary-blue);
+  background-color: rgba(28, 105, 212, 0.04);
+}
+
+/* ================= EXPERIENCE / TELEMETRY ================= */
+.telemetry-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.gauge-ring {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.gauge-ring svg {
+  transform: rotate(-90deg);
+}
+
+.lap-timer-display {
+  font-family: var(--font-sans);
+  font-size: 64px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  font-variant-numeric: tabular-nums;
+}
+
+.lap-record-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 16px 0;
+  border-bottom: 1px solid #1F2937;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  transition: background-color 0.3s ease;
+}
+
+.lap-record-row:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* ================= EVOLUTION CHART ================= */
+.evo-data-point {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.evo-data-point:hover circle {
+  r: 7;
+  fill: var(--primary-blue);
+}
+
+.evo-tooltip {
+  position: absolute;
+  background-color: var(--bg-dark);
+  color: #FFFFFF;
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 100;
+  min-width: 180px;
+}
+
+/* ================= RESPONSIVE ================= */
+/* ================= RESPONSIVE / MOBILE ================= */
+
+/* Tablet breakpoint */
+@media (max-width: 1024px) {
+  .gallery-masonry {
+    column-count: 2;
+  }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 768px) {
+  /* Gallery grid */
+  .gallery-masonry {
+    column-count: 2;
+  }
+
+  /* Container horizontal padding */
+  .container-full {
+    padding: 0 20px !important;
+  }
+
+  /* ---- Navigation mobile ---- */
+  .nav-desktop-links {
+    display: none !important;
+  }
+
+  .nav-hamburger {
+    display: flex !important;
+  }
+
+  nav[data-nav] {
+    padding: 0 20px !important;
+  }
+
+  /* ---- Hero sections ---- */
+  .hero-section {
+    height: 70vh !important;
+    min-height: 420px !important;
+  }
+
+  /* Homepage hero headline */
+  .hero-headline {
+    font-size: 52px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Section paddings */
+  .section-padding {
+    padding: 72px 20px !important;
+  }
+
+  /* ---- M Lineup cards — vertical stack ---- */
+  .m-lineup-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  /* ---- Technology section 3-col → 1-col ---- */
+  .tech-section-wrap {
+    flex-direction: column !important;
+    gap: 40px !important;
+  }
+
+  /* ---- Factory steps ---- */
+  .factory-steps-wrap {
+    max-width: 100% !important;
+  }
+
+  /* ---- Telemetry spec grid ---- */
+  .spec-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* ---- Heritage timeline — horizontal scroll ---- */
+  .timeline-scroll-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 16px !important;
+  }
+
+  /* ---- Footer grid → 2 cols ---- */
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 32px !important;
+  }
+
+  /* ---- Models catalog ---- */
+  .models-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  /* ---- Gallery/Electric/World hero text ---- */
+  .page-hero-title {
+    font-size: 42px !important;
+  }
+
+  /* ---- Brand cinematic section ---- */
+  .brand-cinematic-wrap {
+    flex-direction: column !important;
+  }
+
+  /* ---- Mobile menu overlay ---- */
+  .nav-mobile-menu {
+    display: flex !important;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .gallery-masonry {
+    column-count: 1;
+  }
+
+  .hero-headline {
+    font-size: 40px !important;
+  }
+
+  .models-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .spec-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .page-hero-title {
+    font-size: 34px !important;
+  }
+}
+
+
+/* ================= CUSTOM CURSOR ================= */
+/* Custom cursor dot and ring — kept for reference, cursor hide removed */
+.custom-cursor-dot {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary-blue);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--primary-blue);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+
+body.cursor-hovering .custom-cursor-ring {
+  width: 48px;
+  height: 48px;
+  border-color: rgba(28, 105, 212, 0.5);
+}
+
+/* ================= MEGA-MENU SLIDE DOWN ================= */
+@keyframes slideDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ================= WAVE BAR (Engine Sound Visualiser) ================= */
+.wave-bar {
+  width: 3px;
+  background-color: var(--primary-blue);
+  animation: wave-pulse 0.4s ease infinite alternate;
+}
+
+@keyframes wave-pulse {
+  from { transform: scaleY(0.4); }
+  to   { transform: scaleY(1.2); }
+}
+
+/* ================= MODEL DETAIL CUSTOM SCROLLBAR ================= */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(28, 105, 212, 0.25);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(28, 105, 212, 0.5);
+}
+
+/* ================= LOADER UTILITY ================= */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #F5F5F7;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

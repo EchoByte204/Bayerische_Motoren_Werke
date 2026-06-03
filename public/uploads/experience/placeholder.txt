@@ -1,0 +1,2 @@
+Place your high-fidelity BMW drifting video inside this folder with the following filename:
+- m_drift.mp4
