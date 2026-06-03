@@ -27,6 +27,16 @@ const COLOR_IMAGE_MAP: Record<string, Record<string, string>> = {
     "frozen-marina": "/uploads/models/m2_frozen_blue.png",
     "fire-orange": "/uploads/models/m2_orange.png",
   },
+  m3: {
+    "alpine-white": "/uploads/models/m3.png",
+    "black-sapphire": "/uploads/models/m3.png",
+    "portimao-blue": "/uploads/models/m3.png",
+    "isle-of-man": "/uploads/models/m3.png",
+    "toronto-red": "/uploads/models/m3.png",
+    "brooklyn-grey": "/uploads/models/m3.png",
+    "frozen-marina": "/uploads/models/m3.png",
+    "fire-orange": "/uploads/models/m3.png",
+  },
   m4: {
     "alpine-white": "/uploads/models/m4_white.png",
     "black-sapphire": "/uploads/models/m4_black.png",
@@ -47,11 +57,109 @@ const COLOR_IMAGE_MAP: Record<string, Record<string, string>> = {
     "frozen-marina": "/uploads/models/m5_frozen_blue.png",
     "fire-orange": "/uploads/models/m5_orange.png",
   },
+  i4: {
+    "alpine-white": "/uploads/electric/i4_m50.png",
+    "black-sapphire": "/uploads/electric/i4_m50.png",
+    "portimao-blue": "/uploads/electric/i4_m50.png",
+    "isle-of-man": "/uploads/electric/i4_m50.png",
+    "toronto-red": "/uploads/electric/i4_m50.png",
+    "brooklyn-grey": "/uploads/electric/i4_m50.png",
+    "frozen-marina": "/uploads/electric/i4_m50.png",
+    "fire-orange": "/uploads/electric/i4_m50.png",
+  },
+  xm: {
+    "alpine-white": "/uploads/models/xm_white.png",
+    "black-sapphire": "/uploads/models/xm.png",
+    "portimao-blue": "/uploads/models/xm_blue.png",
+    "isle-of-man": "/uploads/models/xm_blue.png",
+    "toronto-red": "/uploads/models/xm_blue.png",
+    "brooklyn-grey": "/uploads/models/xm_blue.png",
+    "frozen-marina": "/uploads/models/xm_blue.png",
+    "fire-orange": "/uploads/models/xm_blue.png",
+  },
 };
 
 // Resolve current preview image: colour variant if available, else model default
 function resolvePreviewImage(modelId: string, colorId: string, defaultImage: string): string {
   return COLOR_IMAGE_MAP[modelId]?.[colorId] ?? defaultImage;
+}
+
+// Dynamically shift model rendering colors using CSS filters for un-rendered combinations (M3, i4, XM)
+function resolvePreviewFilter(modelId: string, colorId: string): string {
+  if (modelId === "m2" || modelId === "m4" || modelId === "m5") {
+    return "none";
+  }
+
+  // M3: Base image is green (isle-of-man green paint)
+  if (modelId === "m3") {
+    switch (colorId) {
+      case "isle-of-man":
+        return "none";
+      case "alpine-white":
+        return "saturate(0) brightness(1.6) contrast(0.95)";
+      case "black-sapphire":
+        return "saturate(0) brightness(0.28) contrast(1.15)";
+      case "portimao-blue":
+        return "hue-rotate(90deg) saturate(1.2) brightness(0.85)";
+      case "toronto-red":
+        return "hue-rotate(240deg) saturate(1.5) brightness(0.95)";
+      case "brooklyn-grey":
+        return "saturate(0) brightness(1.15) contrast(0.95)";
+      case "frozen-marina":
+        return "hue-rotate(95deg) saturate(1.3) brightness(0.78) contrast(1.05)";
+      case "fire-orange":
+        return "hue-rotate(270deg) saturate(1.7) brightness(1.05)";
+      default:
+        return "none";
+    }
+  }
+
+  // i4: Base image is blue (portimao-blue paint)
+  if (modelId === "i4") {
+    switch (colorId) {
+      case "portimao-blue":
+        return "none";
+      case "alpine-white":
+        return "saturate(0) brightness(1.5) contrast(0.9)";
+      case "black-sapphire":
+        return "saturate(0) brightness(0.26) contrast(1.1)";
+      case "isle-of-man":
+        return "hue-rotate(270deg) saturate(1.2) brightness(0.8)";
+      case "toronto-red":
+        return "hue-rotate(150deg) saturate(1.6) brightness(0.95)";
+      case "brooklyn-grey":
+        return "saturate(0) brightness(1.1) contrast(0.95)";
+      case "frozen-marina":
+        return "saturate(1.25) brightness(0.9) contrast(1.05)";
+      case "fire-orange":
+        return "hue-rotate(180deg) saturate(1.7) brightness(1.05)";
+      default:
+        return "none";
+    }
+  }
+
+  // XM:
+  if (modelId === "xm") {
+    if (colorId === "alpine-white" || colorId === "black-sapphire" || colorId === "portimao-blue") {
+      return "none";
+    }
+    switch (colorId) {
+      case "isle-of-man":
+        return "hue-rotate(270deg) saturate(1.25) brightness(0.85)";
+      case "toronto-red":
+        return "hue-rotate(150deg) saturate(1.6) brightness(0.95)";
+      case "brooklyn-grey":
+        return "saturate(0) brightness(1.1) contrast(0.95)";
+      case "frozen-marina":
+        return "saturate(1.2) brightness(0.9) contrast(1.05)";
+      case "fire-orange":
+        return "hue-rotate(180deg) saturate(1.8) brightness(1.0)";
+      default:
+        return "none";
+    }
+  }
+
+  return "none";
 }
 
 const COLORS = [
@@ -392,7 +500,14 @@ export default function ConfigurePage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
-                style={{ width: "100%", height: "100%", objectFit: "cover", position: "relative", zIndex: 2 }}
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  objectFit: "cover", 
+                  position: "relative", 
+                  zIndex: 2,
+                  filter: resolvePreviewFilter(selectedModel.id, selectedColor.id)
+                }}
               />
             </AnimatePresence>
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(12,13,18,0.85) 0%, rgba(12,13,18,0) 50%)", zIndex: 3 }} />
